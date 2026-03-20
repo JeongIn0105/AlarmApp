@@ -20,6 +20,7 @@ final class AlarmViewController: UIViewController {
         $0.backgroundColor = UIColor(red: 255/255, green: 94/255, blue: 0/255, alpha: 1.0)
         $0.titleLabel?.font = .boldSystemFont(ofSize: 28)
         $0.layer.cornerRadius = 30
+        $0.addTarget(self, action: #selector(editButtonTapped), for: .touchUpInside)
     }
     
     // "+" 버튼
@@ -29,13 +30,14 @@ final class AlarmViewController: UIViewController {
         $0.backgroundColor = UIColor(red: 255/255, green: 94/255, blue: 0/255, alpha: 1)
         $0.titleLabel?.font = .boldSystemFont(ofSize: 28)
         $0.layer.cornerRadius = 30
+        $0.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
     }
     
     // "정인이네 알람" 라벨
     private let alarmLabel = UILabel().then {
         $0.text = "정인이네 알람"
         $0.textColor = UIColor(red: 255/255, green: 255/255, blue: 255/255, alpha: 1.0)
-        $0.font = .boldSystemFont(ofSize: 40)
+        $0.font = .boldSystemFont(ofSize: 36)
     }
     
     // "라인" 뷰
@@ -114,6 +116,11 @@ final class AlarmViewController: UIViewController {
     
     // MARK: - "+" 버튼을 클릭했을 때
     @objc private func plusButtonTapped() {
-        
+        navigationController?.pushViewController(PlusButtonViewController(), animated: true)
+    }
+    
+    // MARK: - "편집" 버튼을 클릭했을 때
+    @objc private func editButtonTapped() {
+        navigationController?.pushViewController(EditViewController(), animated: true)
     }
 }
