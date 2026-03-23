@@ -13,10 +13,42 @@ final class MainTabBarViewController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 1.0)
-        tabBar.tintColor = UIColor(red: 255/255, green: 141/255, blue: 40/255, alpha: 1.0)
-        
+        view.backgroundColor = .black
         setupViewControllers()
+        configureTabBarAppearance()
+    }
+    
+    // MARK: - 탭바 외형 설정
+    private func configureTabBarAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .black
+        appearance.shadowColor = .clear
+        
+        // 선택된 아이템 색상
+        appearance.stackedLayoutAppearance.selected.iconColor = UIColor(red: 255/255, green: 141/255, blue: 40/255, alpha: 1.0)
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
+            .foregroundColor: UIColor(red: 255/255, green: 141/255, blue: 40/255, alpha: 1.0)
+        ]
+        
+        // 선택되지 않은 아이템 색상
+        appearance.stackedLayoutAppearance.normal.iconColor = .white
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
+            .foregroundColor: UIColor.white
+        ]
+        
+        tabBar.standardAppearance = appearance
+        
+        if #available(iOS 15.0, *) {
+            tabBar.scrollEdgeAppearance = appearance
+        }
+        
+        tabBar.backgroundColor = .black
+        tabBar.barTintColor = .black
+        tabBar.isTranslucent = false
+        tabBar.tintColor = UIColor(red: 255/255, green: 141/255, blue: 40/255, alpha: 1.0)
+        tabBar.unselectedItemTintColor = .white
+        tabBar.layer.masksToBounds = true
     }
 
     private func setupViewControllers() {
