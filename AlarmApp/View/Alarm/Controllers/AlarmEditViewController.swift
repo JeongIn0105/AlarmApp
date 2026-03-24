@@ -179,7 +179,6 @@ final class AlarmEditViewController: UIViewController {
         
         guard let hour24 = components.hour, let minute = components.minute else { return }
         
-        // MARK: DatePicker의 시간을 12시간 형식(오전/오후)으로 변환
         let isAM = hour24 < 12
         let hour12 = hour24 == 0 ? 12 : (hour24 > 12 ? hour24 - 12 : hour24)
         

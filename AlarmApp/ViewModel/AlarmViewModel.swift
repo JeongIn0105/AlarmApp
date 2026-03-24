@@ -114,6 +114,50 @@ final class AlarmViewModel {
         }
     }
     
+    // MARK: - 앱이 켜져 있을 때 알람 사운드 반복 재생
+    func triggerForegroundAlarm(_ alarm: Alarm) {
+        foregroundAlarm = alarm
+        let preset = soundPreset(for: alarm.soundName)
+        audioEngine.startRepeating(preset: preset)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            self?.audioEngine.stopRepeating()
+        }
+    }
+    
+    // MARK: - 앱이 켜져 있을 때 알람 사운드 중지
+    func stopForegroundAlarm() {
+        foregroundAlarm = nil
+        audioEngine.stopRepeating()
+    }
+    
+    // MARK: - 다시 알림 예약
+    func snoozeForegroundAlarm() {
+        guard let alarm = foregroundAlarm, alarm.isSnoozeEnabled else { return }
+        
+        stopForegroundAlarm()
+        
+        let content = UNMutableNotificationContent()
+        content.title = alarm.label
+        content.body = "\(alarm.snoozeMinutes)분 뒤 다시 알림입니다."
+        content.sound = UNNotificationSound(
+            named: UNNotificationSoundName(rawValue: notificationSoundName(for: alarm.soundName))
+        )
+        
+        let trigger = UNTimeIntervalNotificationTrigger(
+            timeInterval: TimeInterval(alarm.snoozeMinutes * 60),
+            repeats: false
+        )
+        
+        let request = UNNotificationRequest(
+            identifier: "\(alarm.id.uuidString)_snooze",
+            content: content,
+            trigger: trigger
+        )
+        
+        UNUserNotificationCenter.current().add(request)
+    }
+    
     // MARK: - 저장 후 다시 로드하고 알림 재등록
     private func loadAndReschedule() {
         saveAlarms()
@@ -147,7 +191,9 @@ final class AlarmViewModel {
         let content = UNMutableNotificationContent()
         content.title = alarm.label
         content.body = "\(alarm.meridiemText) \(alarm.timeText) 알람 시간입니다."
-        content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: "alarm-clock-short"))
+        content.sound = UNNotificationSound(
+            named: UNNotificationSoundName(rawValue: notificationSoundName(for: alarm.soundName))
+        )
         
         let calendar = Calendar.current
         let now = Date()
@@ -184,7 +230,9 @@ final class AlarmViewModel {
         let content = UNMutableNotificationContent()
         content.title = alarm.label
         content.body = "\(alarm.meridiemText) \(alarm.timeText) 알람 시간입니다."
-        content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: "alarm-clock-short"))
+        content.sound = UNNotificationSound(
+            named: UNNotificationSoundName(rawValue: notificationSoundName(for: alarm.soundName))
+        )
         
         for day in alarm.repeatDays {
             var dateComponents = DateComponents()
@@ -205,44 +253,6 @@ final class AlarmViewModel {
         }
     }
     
-    // MARK: - 앱이 켜져 있을 때 알람 사운드 반복 재생
-    func triggerForegroundAlarm(_ alarm: Alarm) {
-        foregroundAlarm = alarm
-        let preset = soundPreset(for: alarm.soundName)
-        audioEngine.startRepeating(preset: preset)
-    }
-    
-    // MARK: - 앱이 켜져 있을 때 알람 사운드 중지
-    func stopForegroundAlarm() {
-        foregroundAlarm = nil
-        audioEngine.stopRepeating()
-    }
-    
-    // MARK: - 다시 알림 예약
-    func snoozeForegroundAlarm() {
-        guard let alarm = foregroundAlarm, alarm.isSnoozeEnabled else { return }
-        
-        stopForegroundAlarm()
-        
-        let content = UNMutableNotificationContent()
-        content.title = alarm.label
-        content.body = "\(alarm.snoozeMinutes)분 뒤 다시 알림입니다."
-        content.sound = UNNotificationSound(named: UNNotificationSoundName(rawValue: "alarm-clock-short"))
-        
-        let trigger = UNTimeIntervalNotificationTrigger(
-            timeInterval: TimeInterval(alarm.snoozeMinutes * 60),
-            repeats: false
-        )
-        
-        let request = UNNotificationRequest(
-            identifier: "\(alarm.id.uuidString)_snooze",
-            content: content,
-            trigger: trigger
-        )
-        
-        UNUserNotificationCenter.current().add(request)
-    }
-    
     // MARK: - 다시 알림 취소
     private func cancelSnoozeNotification(for id: UUID) {
         UNUserNotificationCenter.current().removePendingNotificationRequests(
@@ -256,21 +266,35 @@ final class AlarmViewModel {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
     }
     
-    // MARK: - 사운드 이름을 프리셋으로 변환
+    // MARK: - 사운드 이름을 foreground 프리셋으로 변환
     private func soundPreset(for soundName: String) -> AlarmSoundPreset {
         switch soundName {
-        case "오프닝":
-            return .opening
-        case "차임":
-            return .chime
-        case "디지털":
-            return .digital
-        case "클래식":
-            return .classic
         case "레이더":
             return .radar
+        case "기본":
+            return .basic
+        case "벨":
+            return .bell
+        case "차임":
+            return .chime
         default:
             return .radar
+        }
+    }
+    
+    // MARK: - 사운드 이름을 알림 사운드 파일명으로 변환
+    private func notificationSoundName(for soundName: String) -> String {
+        switch soundName {
+        case "레이더":
+            return "radar.wav"
+        case "기본":
+            return "basic.wav"
+        case "벨":
+            return "bell.wav"
+        case "차임":
+            return "chime.wav"
+        default:
+            return "radar.wav"
         }
     }
     
