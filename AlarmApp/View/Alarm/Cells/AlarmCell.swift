@@ -91,31 +91,32 @@ final class AlarmCell: UITableViewCell {
         }
         
         deleteButton.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(20)
-            $0.centerY.equalToSuperview()
+            $0.leading.equalTo(contentView).offset(20)
+            $0.centerY.equalTo(contentView)
             $0.size.equalTo(36)
         }
         
         leftStackView.snp.makeConstraints {
-            $0.leading.equalToSuperview().offset(20)
-            $0.top.equalToSuperview().offset(18)
-            $0.bottom.equalToSuperview().offset(-18)
+            $0.leading.equalTo(contentView).offset(20)
+            $0.centerY.equalTo(contentView)
+            $0.trailing.lessThanOrEqualTo(alarmSwitch.snp.leading).offset(-16)
         }
         
         alarmSwitch.snp.makeConstraints {
-            $0.centerY.equalToSuperview()
-            $0.trailing.equalToSuperview().offset(-20)
+            $0.trailing.equalTo(contentView).offset(-20)
+            $0.centerY.equalTo(contentView).offset(-10)
+    
         }
         
         chevronImageView.snp.makeConstraints {
-            $0.centerY.equalToSuperview()
-            $0.trailing.equalToSuperview().offset(-20)
+            $0.trailing.equalTo(contentView).offset(-20)
+            $0.centerY.equalTo(contentView)
             $0.width.equalTo(10)
             $0.height.equalTo(18)
         }
         
         dividerView.snp.makeConstraints {
-            $0.leading.trailing.bottom.equalToSuperview().inset(10)
+            $0.leading.trailing.bottom.equalTo(contentView).inset(10)
             $0.height.equalTo(1)
         }
         
@@ -135,16 +136,23 @@ final class AlarmCell: UITableViewCell {
         timeLabel.textColor = textColor
         alarmTitleLabel.textColor = textColor
         
-        // MARK: 편집 모드일 때는 삭제 버튼과 이동 화살표를 보여주고, 일반 모드일 때는 스위치를 표시
+        // 편집 모드일 때는 삭제 버튼과 이동 화살표를 보여주고,
+        // 일반 모드일 때는 스위치를 표시
         deleteButton.isHidden = !isEditing
         chevronImageView.isHidden = !isEditing
         alarmSwitch.isHidden = isEditing
         
-        // MARK: 편집 모드 여부에 따라 왼쪽 내용의 시작 위치를 다르게 설정
+        // 편집 모드 여부에 따라 왼쪽 내용 시작 위치 변경
         leftStackView.snp.remakeConstraints {
-            $0.leading.equalToSuperview().offset(isEditing ? 70 : 20)
-            $0.top.equalToSuperview().offset(18)
-            $0.bottom.equalToSuperview().offset(-18)
+            if isEditing {
+                $0.leading.equalTo(deleteButton.snp.trailing).offset(14)
+                $0.trailing.lessThanOrEqualTo(chevronImageView.snp.leading).offset(-16)
+            } else {
+                $0.leading.equalTo(contentView).offset(20)
+                $0.trailing.lessThanOrEqualTo(alarmSwitch.snp.leading).offset(-16)
+            }
+            
+            $0.centerY.equalTo(contentView)
         }
     }
     

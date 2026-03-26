@@ -10,7 +10,7 @@ import SnapKit
 import Then
 import AVFoundation
 
-// MARK: - 타이머 종료 시 화면 구현(사운드)
+// MARK: - 타이머 종료 시 사운드 구현
 final class TimerSoundViewController: UIViewController {
     
     private let viewModel: TimerViewModel
