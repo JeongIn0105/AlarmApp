@@ -9,7 +9,7 @@ import Foundation
 import RxSwift
 import RxCocoa
 
-// MARK: - 스톱워치 ViewModel 구현 (MVVM에서 로직 담당)
+// MARK: - 스톱워치 ViewModel 구현
 class StopwatchViewModel {
     
     // MARK: - 스톱워치 상태 정의
