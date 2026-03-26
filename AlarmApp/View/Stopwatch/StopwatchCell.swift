@@ -33,7 +33,7 @@ final class StopwatchCell: UITableViewCell {
     // 코드로 생성될 때 호출
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        configureCellUI()
+        configureUI()
     }
     
     // 스토리보드 사용 안 함
@@ -43,7 +43,7 @@ final class StopwatchCell: UITableViewCell {
     
     // MARK: - UI 설정
     // 셀 UI 구성 및 레이아웃 설정
-    private func configureCellUI() {
+    private func configureUI() {
         backgroundColor = .black
         contentView.backgroundColor = .black
         selectionStyle = .none // 셀 선택 효과 제거

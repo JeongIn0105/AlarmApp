@@ -11,7 +11,7 @@ import RxSwift
 import RxCocoa
 
 // MARK: - 알람 ViewModel 구현
-final class AlarmViewModel {
+class AlarmViewModel {
     
     static let shared = AlarmViewModel()
     

@@ -186,6 +186,8 @@ final class StopwatchViewController: UIViewController {
     // MARK: - 상태에 따른 UI 변경
     private func updateUI(for state: StopwatchViewModel.StopwatchState) {
         switch state {
+            
+        // 초기 상태
         case .initial:
             leftButton.setTitle("랩", for: .normal)
             leftButton.setTitleColor(.lightGray, for: .normal)
@@ -194,7 +196,8 @@ final class StopwatchViewController: UIViewController {
             rightButton.setTitle("시작", for: .normal)
             rightButton.setTitleColor(.black, for: .normal)
             rightButton.backgroundColor = .systemGreen
-            
+        
+        // 실행 중
         case .running:
             leftButton.setTitle("랩", for: .normal)
             leftButton.setTitleColor(.lightGray, for: .normal)
@@ -203,7 +206,8 @@ final class StopwatchViewController: UIViewController {
             rightButton.setTitle("중단", for: .normal)
             rightButton.setTitleColor(.red, for: .normal)
             rightButton.backgroundColor = UIColor(red: 0.55, green: 0.0, blue: 0.0, alpha: 1.0)
-            
+        
+        // 일시 정지
         case .paused:
             leftButton.setTitle("재설정", for: .normal)
             leftButton.setTitleColor(.lightGray, for: .normal)
