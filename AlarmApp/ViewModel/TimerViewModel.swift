@@ -2,6 +2,8 @@
 //  TimerViewModel.swift
 //  AlarmApp
 //
+//  Created by 이정인 on 3/23/26.
+//
 
 import Foundation
 import RxSwift
@@ -154,6 +156,18 @@ class TimerViewModel {
         updateRecentListTimerState()
     }
     
+    func resetRecentItem(at index: Int) {
+        var items = recentItemsRelay.value
+        guard items.indices.contains(index) else { return }
+        
+        items[index].remainingDuration = items[index].originalDuration
+        items[index].isRunning = false
+        
+        recentItemsRelay.accept(items)
+        persistRecentItems()
+        updateRecentListTimerState()
+    }
+    
     func deleteRecentItem(at index: Int) {
         var items = recentItemsRelay.value
         guard items.indices.contains(index) else { return }
@@ -212,7 +226,7 @@ class TimerViewModel {
     
     private func updateRecentListTimerState() {
         let hasRunningItem = recentItemsRelay.value.contains(where: { $0.isRunning })
-        
+  
         if hasRunningItem {
             startRecentListTimerIfNeeded()
         } else {
@@ -299,7 +313,6 @@ class TimerViewModel {
         do {
             var items = try JSONDecoder().decode([TimerRecentItem].self, from: data)
             
-            // 앱 재실행 후에는 실행 중 상태를 모두 정지 상태로 복원
             for index in items.indices {
                 items[index].isRunning = false
                 

@@ -14,7 +14,7 @@ final class AlarmEditViewController: UIViewController {
     
     // MARK: - 속성
     private let viewModel = AlarmViewModel.shared
-    private let alarm: Alarm // 수정할 기존 알람 데이터
+    private let alarm: Alarm
     
     // MARK: - 편집할 알람 데이터를 전달받아 화면 초기화
     init(alarm: Alarm) {
@@ -68,7 +68,7 @@ final class AlarmEditViewController: UIViewController {
         $0.clipsToBounds = true
     }
     
-    private let formView = AlarmFormView() // 알람 추가 / 편집 화면에서 공통으로 사용하는 입력 폼 뷰
+    private let formView = AlarmFormView()
     
     private let deleteAlarmButton = UIButton(type: .system).then {
         $0.setTitle("알람 삭제", for: .normal)
@@ -84,6 +84,7 @@ final class AlarmEditViewController: UIViewController {
         super.viewDidLoad()
         configureUI()
         configureAlarmData()
+        configureSwipeGesture()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -146,11 +147,18 @@ final class AlarmEditViewController: UIViewController {
         }
     }
     
+    // MARK: - 왼쪽 스와이프 삭제 제스처
+    private func configureSwipeGesture() {
+        let swipeGesture = UISwipeGestureRecognizer(target: self, action: #selector(handleDeleteSwipe))
+        swipeGesture.direction = .left
+        swipeGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(swipeGesture)
+    }
+    
     // MARK: - 기존 알람 데이터를 화면에 표시
     private func configureAlarmData() {
         formView.configure(with: alarm)
         
-        // 저장된 12시간 형식을 DatePicker에 맞게 24시간 형식으로 변환
         let hour24: Int
         if alarm.isAM {
             hour24 = alarm.hour == 12 ? 0 : alarm.hour
@@ -168,16 +176,18 @@ final class AlarmEditViewController: UIViewController {
     }
     
     // MARK: - 버튼 액션
-    @objc private func closeTapped() {
+    @objc
+    private func closeTapped() {
         navigationController?.popViewController(animated: true)
     }
     
-    // MARK: - 수정된 입력값으로 알람 데이터를 업데이트
-    @objc private func saveTapped() {
+    @objc
+    private func saveTapped() {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.hour, .minute], from: datePicker.date)
         
-        guard let hour24 = components.hour, let minute = components.minute else { return }
+        guard let hour24 = components.hour,
+              let minute = components.minute else { return }
         
         let isAM = hour24 < 12
         let hour12 = hour24 == 0 ? 12 : (hour24 > 12 ? hour24 - 12 : hour24)
@@ -199,8 +209,40 @@ final class AlarmEditViewController: UIViewController {
         navigationController?.popViewController(animated: true)
     }
     
-    // MARK: - 현재 알람 삭제 후 이전 화면으로 이동
-    @objc private func deleteAlarmTapped() {
+    // MARK: - 삭제 버튼 클릭
+    @objc
+    private func deleteAlarmTapped() {
+        showDeleteAlert()
+    }
+    
+    // MARK: - 왼쪽 스와이프
+    @objc
+    private func handleDeleteSwipe() {
+        showDeleteAlert()
+    }
+    
+    // MARK: - 삭제 확인 Alert
+    private func showDeleteAlert() {
+        let alert = UIAlertController(
+            title: nil,
+            message: "알람 삭제하시겠습니까?",
+            preferredStyle: .alert
+        )
+        
+        let yesAction = UIAlertAction(title: "네", style: .destructive) { [weak self] _ in
+            self?.deleteCurrentAlarm()
+        }
+        
+        let noAction = UIAlertAction(title: "아니요", style: .cancel, handler: nil)
+        
+        alert.addAction(yesAction)
+        alert.addAction(noAction)
+        
+        present(alert, animated: true)
+    }
+    
+    // MARK: - 알람 삭제 공통 처리
+    private func deleteCurrentAlarm() {
         viewModel.deleteAlarm(id: alarm.id)
         navigationController?.popViewController(animated: true)
     }

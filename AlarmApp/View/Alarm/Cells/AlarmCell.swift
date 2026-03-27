@@ -20,6 +20,9 @@ final class AlarmCell: UITableViewCell {
     // 삭제 버튼 탭 시 ViewController로 이벤트를 전달하는 클로저
     var onDeleteTapped: (() -> Void)?
     
+    // 셀 탭(편집 화면 이동) 이벤트 전달
+    var onChevronTapped: (() -> Void)?
+    
     // MARK: - UI 설정
     private let meridiemLabel = UILabel().then {
         $0.textColor = .white
@@ -46,12 +49,18 @@ final class AlarmCell: UITableViewCell {
         $0.tintColor = .white
         $0.backgroundColor = .systemRed
         $0.layer.cornerRadius = 18
+        $0.clipsToBounds = true
         $0.isHidden = true
     }
     
     private let chevronImageView = UIImageView().then {
         $0.image = UIImage(systemName: "chevron.right")
         $0.tintColor = .white
+        $0.isHidden = true
+    }
+    
+    private let chevronButton = UIButton(type: .custom).then {
+        $0.backgroundColor = .clear
         $0.isHidden = true
     }
     
@@ -80,13 +89,27 @@ final class AlarmCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        onSwitchChanged = nil
+        onDeleteTapped = nil
+        onChevronTapped = nil
+    }
+    
     // MARK: - 셀의 기본 UI 및 제약 조건 설정
     private func configureUI() {
         backgroundColor = .black
         contentView.backgroundColor = .black
         selectionStyle = .none
         
-        [deleteButton, leftStackView, alarmSwitch, chevronImageView, dividerView].forEach {
+        [
+            deleteButton,
+            leftStackView,
+            alarmSwitch,
+            chevronImageView,
+            chevronButton,
+            dividerView
+        ].forEach {
             contentView.addSubview($0)
         }
         
@@ -105,7 +128,6 @@ final class AlarmCell: UITableViewCell {
         alarmSwitch.snp.makeConstraints {
             $0.trailing.equalTo(contentView).offset(-20)
             $0.centerY.equalTo(contentView).offset(-10)
-    
         }
         
         chevronImageView.snp.makeConstraints {
@@ -115,6 +137,12 @@ final class AlarmCell: UITableViewCell {
             $0.height.equalTo(18)
         }
         
+        chevronButton.snp.makeConstraints {
+            $0.top.bottom.equalTo(contentView)
+            $0.leading.equalTo(leftStackView.snp.trailing).offset(8)
+            $0.trailing.equalTo(contentView)
+        }
+        
         dividerView.snp.makeConstraints {
             $0.leading.trailing.bottom.equalTo(contentView).inset(10)
             $0.height.equalTo(1)
@@ -122,13 +150,14 @@ final class AlarmCell: UITableViewCell {
         
         alarmSwitch.addTarget(self, action: #selector(switchValueChanged), for: .valueChanged)
         deleteButton.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
+        chevronButton.addTarget(self, action: #selector(chevronTapped), for: .touchUpInside)
     }
     
     // MARK: - 알람 데이터와 편집 모드 여부에 따라 셀 UI 업데이트
     func configure(with alarm: Alarm, isEditing: Bool) {
         meridiemLabel.text = alarm.meridiemText
         timeLabel.text = alarm.timeText
-        alarmTitleLabel.text = alarm.label
+        alarmTitleLabel.text = alarm.label.isEmpty ? "알람" : alarm.label
         alarmSwitch.isOn = alarm.isEnabled
         
         let textColor: UIColor = alarm.isEnabled ? .white : .gray
@@ -140,6 +169,7 @@ final class AlarmCell: UITableViewCell {
         // 일반 모드일 때는 스위치를 표시
         deleteButton.isHidden = !isEditing
         chevronImageView.isHidden = !isEditing
+        chevronButton.isHidden = !isEditing
         alarmSwitch.isHidden = isEditing
         
         // 편집 모드 여부에 따라 왼쪽 내용 시작 위치 변경
@@ -154,15 +184,25 @@ final class AlarmCell: UITableViewCell {
             
             $0.centerY.equalTo(contentView)
         }
+        
+        layoutIfNeeded()
     }
     
     // MARK: - 스위치 변경 이벤트 전달
-    @objc private func switchValueChanged() {
+    @objc
+    private func switchValueChanged() {
         onSwitchChanged?(alarmSwitch.isOn)
     }
     
     // MARK: - 삭제 버튼 탭 이벤트 전달
-    @objc private func deleteTapped() {
+    @objc
+    private func deleteTapped() {
         onDeleteTapped?()
+    }
+    
+    // MARK: - 편집 화면 이동 이벤트 전달
+    @objc
+    private func chevronTapped() {
+        onChevronTapped?()
     }
 }
