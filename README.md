@@ -83,7 +83,7 @@ AlarmApp
 
 <!-- 여기에 스크린샷 이미지 추가 -->
 <p align="center">
-<img src="https://github.com/" width="250"/>
+<img src="./AlarmApp.png" width="500"/>
 </p>
 
 ---
