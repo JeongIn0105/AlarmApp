@@ -7,7 +7,7 @@ import Foundation
 import RxSwift
 import RxCocoa
 
-final class TimerViewModel {
+class TimerViewModel {
     
     var onTick: ((String) -> Void)?
     var onStateChanged: ((Bool) -> Void)?

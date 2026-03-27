@@ -2,48 +2,70 @@
 //  TimerSoundViewController.swift
 //  AlarmApp
 //
-//  Created by 이정인 on 3/20/26.
-//
 
 import UIKit
 import SnapKit
 import Then
-import AVFoundation
 
-// MARK: - 타이머 종료 시 사운드 구현
 final class TimerSoundViewController: UIViewController {
     
     private let viewModel: TimerViewModel
-    private var audioPlayer: AVAudioPlayer?
+    
+    private let sounds = [
+        "레디얼(기본 설정)",
+        "걸음",
+        "골짜기",
+        "반향",
+        "머큐리"
+    ]
+    
+    private let containerView = UIView().then {
+        $0.backgroundColor = .clear
+    }
+    
+    private let closeButton = UIButton(type: .system).then {
+        let image = UIImage(systemName: "xmark")?.withConfiguration(
+            UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
+        )
+        $0.setImage(image, for: .normal)
+        $0.tintColor = .white
+        $0.backgroundColor = UIColor(white: 0.10, alpha: 1.0)
+        $0.layer.cornerRadius = 18
+        $0.clipsToBounds = true
+        $0.layer.borderWidth = 1
+        $0.layer.borderColor = UIColor(white: 1.0, alpha: 0.08).cgColor
+    }
     
     private let titleLabel = UILabel().then {
         $0.text = "타이머 종료 시"
         $0.textColor = .white
-        $0.font = .systemFont(ofSize: 22, weight: .bold)
+        $0.font = .systemFont(ofSize: 28, weight: .bold)
         $0.textAlignment = .center
     }
     
-    private let doneButton = UIButton(type: .system).then {
+    private let settingButton = UIButton(type: .system).then {
         $0.setTitle("설정", for: .normal)
         $0.setTitleColor(.white, for: .normal)
         $0.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
-        $0.backgroundColor = .orange
-        $0.layer.cornerRadius = 24
-        $0.clipsToBounds = true
-    }
-    
-    private let tableContainerView = UIView().then {
-        $0.backgroundColor = UIColor(white: 0.22, alpha: 1.0)
+        $0.backgroundColor = UIColor(red: 1.0, green: 149/255, blue: 0, alpha: 1.0)
         $0.layer.cornerRadius = 18
         $0.clipsToBounds = true
     }
     
-    private let tableView = UITableView(frame: .zero, style: .plain).then {
-        $0.backgroundColor = .clear
-        $0.separatorColor = UIColor(white: 0.45, alpha: 1.0)
-        $0.rowHeight = 56
-        $0.showsVerticalScrollIndicator = true
+    private let cardView = UIView().then {
+        $0.backgroundColor = UIColor(white: 0.24, alpha: 1.0)
+        $0.layer.cornerRadius = 24
+        $0.clipsToBounds = true
     }
+    
+    private let stackView = UIStackView().then {
+        $0.axis = .vertical
+        $0.spacing = 0
+        $0.alignment = .fill
+        $0.distribution = .fill
+    }
+    
+    private var rowViews: [SoundRowView] = []
     
     init(viewModel: TimerViewModel) {
         self.viewModel = viewModel
@@ -56,117 +78,189 @@ final class TimerSoundViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureNavigation()
         configureUI()
-        configureTableView()
-    }
-    
-    private func configureNavigation() {
-        title = ""
-        
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithTransparentBackground()
-        navigationController?.navigationBar.standardAppearance = appearance
-        navigationController?.navigationBar.scrollEdgeAppearance = appearance
-        navigationController?.navigationBar.tintColor = .white
+        configureRows()
+        updateSelectionUI()
     }
     
     private func configureUI() {
         view.backgroundColor = .black
         
-        [
-            titleLabel,
-            doneButton,
-            tableContainerView
-        ].forEach { view.addSubview($0) }
+        view.addSubview(containerView)
         
-        tableContainerView.addSubview(tableView)
+        [
+            closeButton,
+            titleLabel,
+            settingButton,
+            cardView
+        ].forEach { containerView.addSubview($0) }
+
+        cardView.addSubview(stackView)
+        
+        containerView.snp.makeConstraints {
+            $0.centerY.equalTo(view.safeAreaLayoutGuide)
+            $0.leading.trailing.equalToSuperview()
+        }
+        
+        closeButton.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(60)
+            $0.centerY.equalTo(titleLabel)
+            $0.size.equalTo(36)
+        }
         
         titleLabel.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(12)
+            $0.top.equalToSuperview()
             $0.centerX.equalToSuperview()
         }
         
-        doneButton.snp.makeConstraints {
+        settingButton.snp.makeConstraints {
             $0.centerY.equalTo(titleLabel)
-            $0.trailing.equalToSuperview().offset(-20)
-            $0.width.equalTo(74)
-            $0.height.equalTo(48)
+            $0.trailing.equalToSuperview().offset(-40)
+            $0.width.equalTo(60)
+            $0.height.equalTo(36)
         }
         
-        tableContainerView.snp.makeConstraints {
-            $0.top.equalTo(titleLabel.snp.bottom).offset(20)
-            $0.leading.trailing.equalToSuperview().inset(20)
-            $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).offset(-90)
+        cardView.snp.makeConstraints {
+            $0.top.equalTo(titleLabel.snp.bottom).offset(30)
+            $0.leading.trailing.equalToSuperview().inset(30)
+            $0.bottom.equalToSuperview()
         }
         
-        tableView.snp.makeConstraints {
+        stackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
         
-        doneButton.addTarget(self, action: #selector(doneTapped), for: .touchUpInside)
+        closeButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
+        settingButton.addTarget(self, action: #selector(settingTapped), for: .touchUpInside)
     }
     
-    private func configureTableView() {
-        tableView.dataSource = self
-        tableView.delegate = self
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "SoundCell")
+    private func configureRows() {
+        for index in sounds.indices {
+            let sound = sounds[index]
+            let isLast = index == sounds.count - 1
+            
+            let row = SoundRowView()
+            row.configure(title: sound, showsDivider: !isLast)
+            
+            row.onTap = { [weak self] in
+                guard let self else { return }
+                self.viewModel.updateSelectedSound(sound)
+                self.updateSelectionUI()
+            }
+            
+            stackView.addArrangedSubview(row)
+            
+            row.snp.makeConstraints {
+                $0.height.equalTo(72)
+            }
+            
+            rowViews.append(row)
+        }
+    }
+    
+    private func updateSelectionUI() {
+        for index in rowViews.indices {
+            let sound = sounds[index]
+            let isSelected = viewModel.selectedSound == sound
+            rowViews[index].setSelected(isSelected)
+        }
     }
     
     @objc
-    private func doneTapped() {
-        navigationController?.popViewController(animated: true)
+    private func closeTapped() {
+        moveToTimerScreen()
     }
     
-    private func previewSound(named sound: String) {
-        let fileName = viewModel.soundFileName(for: sound)
+    @objc
+    private func settingTapped() {
+        moveToTimerScreen()
+    }
+    
+    private func moveToTimerScreen() {
+        guard let navigationController else { return }
         
-        guard let url = Bundle.main.url(forResource: fileName, withExtension: "wav") else {
-            print("❌ 파일 없음: \(fileName).wav")
+        if let startVC = navigationController.viewControllers.first(where: { $0 is TimerStartViewController }) {
+            navigationController.popToViewController(startVC, animated: true)
             return
         }
         
-        do {
-            audioPlayer?.stop()
-            audioPlayer = try AVAudioPlayer(contentsOf: url)
-            audioPlayer?.prepareToPlay()
-            audioPlayer?.play()
-        } catch {
-            print("❌ 재생 실패: \(error)")
+        if let timerVC = navigationController.viewControllers.first(where: { $0 is TimerViewController }) {
+            navigationController.popToViewController(timerVC, animated: true)
+            return
         }
+        
+        navigationController.popViewController(animated: true)
     }
 }
 
-extension TimerSoundViewController: UITableViewDataSource, UITableViewDelegate {
+final class SoundRowView: UIView {
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.availableSounds.count
+    var onTap: (() -> Void)?
+    
+    private let titleLabel = UILabel().then {
+        $0.textColor = .white
+        $0.font = .systemFont(ofSize: 18, weight: .bold)
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let sound = viewModel.availableSounds[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "SoundCell", for: indexPath)
+    private let checkImageView = UIImageView().then {
+        $0.image = UIImage(systemName: "checkmark")
+        $0.tintColor = UIColor(red: 1.0, green: 149/255, blue: 0, alpha: 1.0)
+        $0.contentMode = .scaleAspectFit
+        $0.isHidden = true
+    }
+    
+    private let dividerView = UIView().then {
+        $0.backgroundColor = UIColor(white: 1.0, alpha: 0.22)
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        configureUI()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func configureUI() {
+        backgroundColor = .clear
         
-        cell.backgroundColor = .clear
-        cell.selectionStyle = .none
-        cell.textLabel?.text = sound
-        cell.textLabel?.textColor = .white
-        cell.textLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        addSubview(titleLabel)
+        addSubview(checkImageView)
+        addSubview(dividerView)
         
-        if sound == viewModel.selectedSound {
-            cell.accessoryType = .checkmark
-            cell.tintColor = .orange
-        } else {
-            cell.accessoryType = .none
+        titleLabel.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(20)
+            $0.centerY.equalToSuperview()
         }
         
-        return cell
+        checkImageView.snp.makeConstraints {
+            $0.trailing.equalToSuperview().offset(-20)
+            $0.centerY.equalToSuperview()
+            $0.width.height.equalTo(28)
+        }
+        
+        dividerView.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.bottom.equalToSuperview()
+            $0.height.equalTo(1)
+        }
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(rowTapped))
+        addGestureRecognizer(tapGesture)
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let sound = viewModel.availableSounds[indexPath.row]
-        viewModel.updateSelectedSound(sound)
-        previewSound(named: sound)
-        tableView.reloadData()
+    func configure(title: String, showsDivider: Bool) {
+        titleLabel.text = title
+        dividerView.isHidden = !showsDivider
+    }
+    
+    func setSelected(_ selected: Bool) {
+        checkImageView.isHidden = !selected
+    }
+    
+    @objc
+    private func rowTapped() {
+        onTap?()
     }
 }
