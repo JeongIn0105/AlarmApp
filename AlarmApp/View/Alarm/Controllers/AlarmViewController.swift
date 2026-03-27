@@ -73,7 +73,6 @@ final class AlarmViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: false)
-        
         viewModel.loadAlarms()
     }
     
@@ -130,7 +129,6 @@ final class AlarmViewController: UIViewController {
             $0.top.equalTo(etcUnderlineView.snp.bottom).offset(10)
             $0.leading.trailing.bottom.equalToSuperview()
         }
-        
     }
     
     // MARK: - Rx 바인딩
@@ -178,23 +176,15 @@ final class AlarmViewController: UIViewController {
         .disposed(by: disposeBag)
         
         tableView.rx.itemSelected
-            .withLatestFrom(isEditingMode) { ($0, $1) }
-            .filter { _, isEditing in isEditing }
-            .map { $0.0 }
             .subscribe(onNext: { [weak self] indexPath in
                 guard let self else { return }
+                
+                self.tableView.deselectRow(at: indexPath, animated: true)
                 
                 let selectedAlarm = self.viewModel.alarms.value[indexPath.row]
                 let editViewController = AlarmEditViewController(alarm: selectedAlarm)
                 self.navigationController?.pushViewController(editViewController, animated: true)
             })
             .disposed(by: disposeBag)
-        
-        tableView.rx.itemSelected
-            .subscribe(onNext: { [weak self] indexPath in
-                self?.tableView.deselectRow(at: indexPath, animated: true)
-            })
-            .disposed(by: disposeBag)
     }
-
 }

@@ -8,6 +8,7 @@ import SnapKit
 import Then
 import AVFoundation
 
+// MARK: - 타이머 시작 화면 구현
 final class TimerStartViewController: UIViewController {
     
     private let viewModel: TimerViewModel
@@ -51,7 +52,7 @@ final class TimerStartViewController: UIViewController {
         $0.setTitleColor(UIColor(red: 1.0, green: 94/255, blue: 0, alpha: 1.0), for: .normal)
         $0.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
         $0.backgroundColor = UIColor(red: 95/255, green: 19/255, blue: 0, alpha: 1.0)
-        $0.layer.cornerRadius = 36
+        $0.layer.cornerRadius = 45
         $0.clipsToBounds = true
     }
     
@@ -60,7 +61,7 @@ final class TimerStartViewController: UIViewController {
         $0.setTitleColor(.orange, for: .normal)
         $0.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
         $0.backgroundColor = UIColor(red: 96/255, green: 50/255, blue: 0, alpha: 1.0)
-        $0.layer.cornerRadius = 36
+        $0.layer.cornerRadius = 45
         $0.clipsToBounds = true
     }
     
@@ -140,14 +141,6 @@ final class TimerStartViewController: UIViewController {
         }
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: animated)
-        navigationController?.navigationBar.tintColor = .white
-        navigationController?.navigationBar.barStyle = .black
-        navigationController?.navigationBar.isTranslucent = true
-    }
-    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         updateCirclePath()
@@ -206,7 +199,7 @@ final class TimerStartViewController: UIViewController {
         
         endTimeLabel.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            $0.centerY.equalToSuperview().offset(-30)
+            $0.centerY.equalToSuperview().offset(-35)
             $0.leading.greaterThanOrEqualToSuperview().offset(20)
             $0.trailing.lessThanOrEqualToSuperview().offset(-20)
         }
@@ -219,13 +212,13 @@ final class TimerStartViewController: UIViewController {
         cancelButton.snp.makeConstraints {
             $0.top.equalTo(circleContainerView.snp.bottom).offset(16)
             $0.leading.equalToSuperview().offset(40)
-            $0.width.height.equalTo(72)
+            $0.width.height.equalTo(90)
         }
         
         pauseButton.snp.makeConstraints {
             $0.top.equalTo(circleContainerView.snp.bottom).offset(16)
             $0.trailing.equalToSuperview().offset(-40)
-            $0.width.height.equalTo(72)
+            $0.width.height.equalTo(90)
         }
         
         infoContainerView.snp.makeConstraints {
